@@ -48,6 +48,12 @@ COMMIT
 # By default, accept any packets originating from this server
 :OUTPUT ACCEPT [0:0]
 
+# Add rate limit
+-A INPUT --match conntrack --ctstate NEW --jump RATE-LIMIT
+-A RATE-LIMIT --match hashlimit --hashlimit-upto 50/sec --hashlimit-burst 20 --hashlimit-mode srcip --hashlimit-name conn_rate_limit -j ACCEPT
+-A RATE-LIMIT --match limit --limit 1/sec -j LOG --log-prefix "IPTables-Rejected: "
+-A RATE-LIMIT -j REJECT --reject-with icmp-port-unreachable
+
 # Accept packets destined for localhost
 -A INPUT -i lo -j ACCEPT
 # Accept any packet from an open TCP connection
